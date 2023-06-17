@@ -45,9 +45,9 @@ pipeline {
 
           //Cara 2: Deploy aplikasi ke docker di AWS EC2
           //Catatan: ssh key jenkins sudah di add di remote server
-          sh "scp **/*.war ubuntu@175.41.159.67:/home/ubuntu" // copy artifact ke remote server
-          sh "scp /home/Documents/!Schoolz/dicoding/devops/proyek1/simple-java-maven-app/jenkins/script/*.sh ubuntu@175.41.159.67:/home/ubuntu" // copy script deploy docker
-          sh "scp /home/Documents/!Schoolz/dicoding/devops/proyek1/simple-java-maven-app/Dockerfile ubuntu@175.41.159.67:/home/ubuntu" // copy Dockerfile
+          sh "scp -o **/*.war ubuntu@175.41.159.67:/home/ubuntu" // copy artifact ke remote server
+          sh "scp -o /home/Documents/!Schoolz/dicoding/devops/proyek1/simple-java-maven-app/jenkins/script/*.sh ubuntu@175.41.159.67:/home/ubuntu" // copy script deploy docker
+          sh "scp -o /home/Documents/!Schoolz/dicoding/devops/proyek1/simple-java-maven-app/Dockerfile ubuntu@175.41.159.67:/home/ubuntu" // copy Dockerfile
           sh "ssh ubuntu@175.41.159.67 'sudo chmod +x /home/ubuntu/*.sh; sudo /home/ubuntu/deploy_docker.sh'" // memberi mode eksekusi ke script dan langsung dijalankan
           echo "Silahkan coba aplikasi di http://175.41.159.67:8080/hello"
             
