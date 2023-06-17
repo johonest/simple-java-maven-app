@@ -1,7 +1,7 @@
-pipeline{
+pipeline {
   agent any
   tools {
-    maven 'maven-3.6.3' 
+    maven 'maven-3.6.3'
   }
   stages {
     stage('Build') {
@@ -23,25 +23,42 @@ pipeline{
     stage('Manual Approval') {
       steps {
         script {
-          input message: 'Apakah Anda mau melakukan deploy?', ok: 'Proceed', submitter: 'user1'
+          input message: 'Lanjutkan ke tahap Deploy?', ok: 'Proceed', submitter: 'user1'
         }
       }
     }
-    stage ('Deploy') {
+    stage('Deploy') {
       steps {
         script {
-          // Deploy aplikasi
-          deploy adapters: [tomcat9(credentialsId: 'tomcat_credential', path: '', url: 'http://18.136.203.150:8080/')], contextPath: '/hello', onFailure: false, war: 'target/*.war' 
-          echo "Aplikasi sudah ter-deploy! Silahkan akses di: http://18.136.203.150:8080/hello"
+          // Cara 1: Deploy aplikasi langsung ke tomcat di EC2
+          // deploy adapters: [tomcat9(credentialsId: 'tomcat_credential', path: '', url: 'http://18.136.203.150:8080/')], contextPath: '/hello', onFailure: false, war: 'target/*.war' 
+          // echo "Aplikasi sudah ter-deploy! Silahkan akses di: http://18.136.203.150:8080/hello"
 
           // Menunda eksekusi selama 1 menit
-          echo "Aplikasi akan berjalan selama 1 minutes..."
-          sleep time: 1, unit: 'MINUTES'
+          // echo "Aplikasi akan berjalan selama 1 menit..."
+          // sleep time: 1, unit: 'MINUTES'
 
           // Mematikan aplikasi
-          echo "Mematikan aplikasi..."
-          sh "ssh ubuntu@18.136.203.150 'sudo rm -r /var/lib/tomcat9/webapps/hello && sudo rm /var/lib/tomcat9/webapps/hello.*'"
-          echo "Aplikasi sudah dimatikan. Pipeline sukses!"
+          // echo "Mematikan aplikasi..."
+          // sh "ssh ubuntu@18.136.203.150 'sudo rm -r /var/lib/tomcat9/webapps/hello && sudo rm /var/lib/tomcat9/webapps/hello.*'"
+          // echo "Aplikasi sudah dimatikan. Pipeline sukses!"
+
+          //Cara 2: Deploy aplikasi ke docker di AWS EC2
+          //Catatan: ssh key jenkins sudah di add di remote server
+          sh "scp **/*.war ubuntu@175.41.159.67:/home/ubuntu" // copy artifact ke remote server
+          sh "scp /home/Documents/!Schoolz/dicoding/devops/proyek1/simple-java-maven-app/jenkins/script/*.sh ubuntu@175.41.159.67:/home/ubuntu" // copy script deploy docker
+          sh "scp /home/Documents/!Schoolz/dicoding/devops/proyek1/simple-java-maven-app/jenkins/Dockerfile ubuntu@175.41.159.67:/home/ubuntu" // copy Dockerfile
+          sh "ssh ubuntu@175.41.159.67 'sudo chmod +x /home/ubuntu/*.sh; sudo /home/ubuntu/deploy_docker.sh'" // memberi mode eksekusi ke script dan langsung dijalankan
+          echo "Silahkan coba aplikasi di http://175.41.159.67:8080/hello"
+            
+          // Menunda eksekusi selama 1 menit
+          echo "Aplikasi akan berjalan selama 1 menit..."
+           sleep time: 1, unit: 'MINUTES'
+
+          // Mematikan aplikasi
+           echo "Mematikan aplikasi..."
+           sh "ssh ubuntu@175.41.159.67 'sudo /home/ubuntu/stop_docker.sh'"
+           echo "Aplikasi sudah dimatikan. Pipeline sukses!"
         }
       }
     }
